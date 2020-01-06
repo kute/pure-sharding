@@ -1,0 +1,134 @@
+spring:
+  application:
+    name: pure-sharding-jdbc-4.x
+  main:
+    allow-bean-definition-overriding: true
+  # sharding
+  shardingsphere:
+    datasource:
+      names: master-0,master-0-slave,master-1,master-1-slave
+      # @see com.alibaba.druid.pool.DruidDataSource
+      master-0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        #        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/master_0?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF8
+        username: root
+        password: root
+        maxActive: 100
+        initialSize: 4
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        asyncInit: true
+      master-1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        #        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/master_1?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF8
+        username: root
+        password: root
+        maxActive: 100
+        initialSize: 4
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        asyncInit: true
+      master-0-slave:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        #        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/master_0_slave?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF8
+        username: root
+        password: root
+        maxActive: 100
+        initialSize: 4
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        asyncInit: true
+      master-1-slave:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        #        driverClassName: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/master_1_slave?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF8
+        username: root
+        password: root
+        maxActive: 100
+        initialSize: 4
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+        asyncInit: true
+    sharding:
+      tables:
+        # user_post表的分库分表策略
+        user_post:
+          # @see org.apache.shardingsphere.core.yaml.config.sharding.YamlTableRuleConfiguration
+          # 逻辑表
+          logic-table: user_post
+          # 实际数据节点：{datasource} + {table}
+          actual-data-nodes: dms-$->{0..1}.user_post_$->{0..1}
+          # user_post 表所在的库的分库策略
+          database-strategy:
+            # 使用 inline
+            inline:
+              sharding-column: id
+              algorithm-expression: dms-$->{id % 2}
+          # user_post 表的分表策略
+          table-strategy:
+            inline:
+              sharding-column: id
+              algorithm-expression: user_post_$->{id % 2}
+          # @see org.apache.shardingsphere.core.yaml.config.sharding.YamlKeyGeneratorConfiguration
+          key-generator:
+            # SNOWFLAKE, UUID
+            # @see org.apache.shardingsphere.core.strategy.keygen.UUIDShardingKeyGenerator.getType()
+            # @see org.apache.shardingsphere.core.strategy.keygen.SnowflakeShardingKeyGenerator.getType()
+            type: SNOWFLAKE
+            column: id
+            props:
+              # https://www.cnblogs.com/relucent/p/4955340.html
+              # default 0,和 snowflake算法有关
+              worker.id: 999
+      # 规则 @see io.shardingsphere.core.yaml.masterslave.YamlMasterSlaveRuleConfiguration
+      master-slave-rules:
+        dms-0:
+          master-datasource-name: master-0
+          slave-datasource-names: master-0-slave
+          load-balance-algorithm-type: round_robin
+        dms-1:
+          master-datasource-name: master-1
+          slave-datasource-names: master-1-slave
+          load-balance-algorithm-type: round_robin
+    props:
+      sql.show: true
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.kute.sharding.jdbc4x.entity
