@@ -1,6 +1,6 @@
 sharding:
   jdbc:
-    # 数据源,一主一从
+    # 数据源,两主两从
     datasource:
       names: master-0,master-0-slave,master-1,master-1-slave
       # @see com.alibaba.druid.pool.DruidDataSource
