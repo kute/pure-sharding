@@ -15,7 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 @ActiveProfiles("test")
 @ContextConfiguration(classes = {ShardingJdbc3xApplication.class})
-@ComponentScan(value = {"com.lianjia", "com.alibaba.dubbo"})
+@ComponentScan(value = {"com.alibaba.dubbo"})
 public class UserPostMapperTest {
 
     @Autowired
